@@ -26,6 +26,8 @@ MPI_Op c_MPI_SUM = MPI_SUM;
 
 MPI_Op c_MPI_MAX = MPI_MAX;
 
+MPI_Op c_MPI_MIN = MPI_MIN;
+
 MPI_Op c_MPI_LOR = MPI_LOR;
 
 // Communicators Declarations
@@ -35,3 +37,15 @@ MPI_Comm c_MPI_COMM_NULL = MPI_COMM_NULL;
 MPI_Comm c_MPI_COMM_WORLD = MPI_COMM_WORLD;
 
 MPI_Comm c_MPI_COMM_SELF = MPI_COMM_SELF;
+
+/* Keep MPI_Status layout and conversion in C rather than guessing its fields. */
+int fortran_mpi_recv_scalar(void *buffer, int count, MPI_Datatype datatype,
+                          int source, int tag, MPI_Comm comm, MPI_Fint *status)
+{
+    MPI_Status c_status;
+    int ierr = MPI_Recv(buffer, count, datatype, source, tag, comm, &c_status);
+    if (ierr == MPI_SUCCESS) {
+        ierr = MPI_Status_c2f(&c_status, status);
+    }
+    return ierr;
+}

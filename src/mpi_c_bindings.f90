@@ -22,6 +22,7 @@ module mpi_c_bindings
 
     integer(kind=MPI_HANDLE_KIND), bind(C, name="c_MPI_SUM") :: c_mpi_sum
     integer(kind=MPI_HANDLE_KIND), bind(C, name="c_MPI_MAX") :: c_mpi_max
+    integer(kind=MPI_HANDLE_KIND), bind(C, name="c_MPI_MIN") :: c_mpi_min
     integer(kind=MPI_HANDLE_KIND), bind(C, name="c_MPI_LOR") :: c_mpi_lor
 
     integer(kind=MPI_HANDLE_KIND), bind(C, name="c_MPI_COMM_WORLD") :: c_mpi_comm_world
@@ -29,6 +30,39 @@ module mpi_c_bindings
     integer(kind=MPI_HANDLE_KIND), bind(C, name="c_MPI_COMM_SELF") :: c_mpi_comm_self
 
     interface
+
+        function c_mpi_abort(comm, errorcode) bind(C, name="MPI_Abort") result(code)
+            use iso_c_binding, only: c_int
+            integer(kind=MPI_HANDLE_KIND), value :: comm
+            integer(c_int), value :: errorcode
+            integer(c_int) :: code
+        end function c_mpi_abort
+
+        function c_mpi_comm_split(comm, color, key, newcomm) bind(C, name="MPI_Comm_split") result(code)
+            use iso_c_binding, only: c_int
+            integer(kind=MPI_HANDLE_KIND), value :: comm
+            integer(c_int), value :: color, key
+            integer(kind=MPI_HANDLE_KIND), intent(out) :: newcomm
+            integer(c_int) :: code
+        end function c_mpi_comm_split
+
+        function c_mpi_send(buf, count, datatype, dest, tag, comm) bind(C, name="MPI_Send") result(code)
+            use iso_c_binding, only: c_ptr, c_int
+            type(c_ptr), value :: buf
+            integer(c_int), value :: count, dest, tag
+            integer(kind=MPI_HANDLE_KIND), value :: datatype, comm
+            integer(c_int) :: code
+        end function c_mpi_send
+
+        function c_mpi_recv_scalar(buf, count, datatype, source, tag, comm, status) &
+            bind(C, name="fortran_mpi_recv_scalar") result(code)
+            use iso_c_binding, only: c_ptr, c_int
+            type(c_ptr), value :: buf
+            integer(c_int), value :: count, source, tag
+            integer(kind=MPI_HANDLE_KIND), value :: datatype, comm
+            integer(c_int), intent(out) :: status(*)
+            integer(c_int) :: code
+        end function c_mpi_recv_scalar
 
         function c_mpi_comm_f2c(comm_f) bind(C, name="MPI_Comm_f2c")
             use iso_c_binding, only: c_int, c_ptr
