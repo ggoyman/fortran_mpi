@@ -11,7 +11,7 @@ program allreduce_min_op_01
     if (ierr /= MPI_SUCCESS) error stop 'MPI_Comm_rank failed'
 
     sendbuf(1) = rank + 10
-    call MPI_Allreduce(sendbuf, recvbuf, 1, MPI_INT, MPI_MIN, MPI_COMM_WORLD, ierr)
+    call MPI_Allreduce(sendbuf, recvbuf, 1, MPI_INTEGER, MPI_MIN, MPI_COMM_WORLD, ierr)
     if (ierr /= MPI_SUCCESS .or. recvbuf(1) /= 10) &
         error stop 'MPI_MIN allreduce failed'
 

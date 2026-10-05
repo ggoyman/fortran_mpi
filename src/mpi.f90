@@ -6,7 +6,7 @@ module mpi
 
     integer, parameter :: MPI_INTEGER_KIND = kind(0)
     integer, parameter :: MPI_INTEGER = -10002
-    integer, parameter :: MPI_INT = MPI_INTEGER
+    integer, parameter :: MPI_INT = -10007
     integer, parameter :: MPI_REAL = -10003
     integer, parameter :: MPI_DOUBLE_PRECISION = -10004
     integer, parameter :: MPI_REAL4 = -10013
@@ -482,6 +482,7 @@ module mpi
 
     integer(kind=MPI_HANDLE_KIND) function handle_mpi_datatype_f2c(datatype_f) result(c_datatype)
         use mpi_c_bindings, only: c_mpi_float, c_mpi_double, c_mpi_int, c_mpi_logical, c_mpi_character, c_mpi_real
+        use mpi_c_bindings, only: c_mpi_integer
         integer, intent(in) :: datatype_f
         if (datatype_f == MPI_REAL4) then
             c_datatype = c_mpi_float
@@ -490,6 +491,8 @@ module mpi
         else if (datatype_f == MPI_REAL8 .OR. datatype_f == MPI_DOUBLE_PRECISION) then
             c_datatype = c_mpi_double
         else if (datatype_f == MPI_INTEGER) then
+            c_datatype = c_mpi_integer
+        else if (datatype_f == MPI_INT) then
             c_datatype = c_mpi_int
         else if (datatype_f == MPI_CHARACTER) then
             c_datatype = c_mpi_character
