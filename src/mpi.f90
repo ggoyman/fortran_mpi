@@ -162,6 +162,8 @@ module mpi
     interface MPI_Recv
         module procedure MPI_Recv_real4_scalar
         module procedure MPI_Recv_real8_scalar
+        module procedure MPI_Recv_real4_scalar_ignore
+        module procedure MPI_Recv_real8_scalar_ignore
         module procedure MPI_Recv_StatusArray_proc
         module procedure MPI_Recv_StatusIgnore_proc    
     end interface
@@ -316,6 +318,17 @@ module mpi
         if (present(ierror)) ierror = code
     end subroutine MPI_Recv_real4_scalar
 
+    subroutine MPI_Recv_real4_scalar_ignore(buf, count, datatype, source, tag, comm, status, ierror)
+        real(4), target, intent(out) :: buf
+        integer, intent(in) :: count, datatype, source, tag, comm, status
+        integer, optional, intent(out) :: ierror
+        integer :: local_status(MPI_STATUS_SIZE), code
+
+        ! The scalar status argument represents MPI_STATUS_IGNORE.
+        call MPI_Recv_real4_scalar(buf, count, datatype, source, tag, comm, local_status, code)
+        if (present(ierror)) ierror = code
+    end subroutine MPI_Recv_real4_scalar_ignore
+
     subroutine MPI_Bcast_real4_scalar(buf, count, datatype, root, comm, ierror)
         use iso_c_binding, only : c_loc
         use mpi_c_bindings, only : c_mpi_bcast
@@ -372,6 +385,17 @@ module mpi
         if (present(ierror)) ierror = code
     end subroutine MPI_Recv_real8_scalar
 
+    subroutine MPI_Recv_real8_scalar_ignore(buf, count, datatype, source, tag, comm, status, ierror)
+        real(8), target, intent(out) :: buf
+        integer, intent(in) :: count, datatype, source, tag, comm, status
+        integer, optional, intent(out) :: ierror
+        integer :: local_status(MPI_STATUS_SIZE), code
+
+        ! The scalar status argument represents MPI_STATUS_IGNORE.
+        call MPI_Recv_real8_scalar(buf, count, datatype, source, tag, comm, local_status, code)
+        if (present(ierror)) ierror = code
+    end subroutine MPI_Recv_real8_scalar_ignore
+
     subroutine MPI_Bcast_real8_scalar(buf, count, datatype, root, comm, ierror)
         use iso_c_binding, only : c_loc
         use mpi_c_bindings, only : c_mpi_bcast
@@ -385,15 +409,22 @@ module mpi
     end subroutine MPI_Bcast_real8_scalar
 
     subroutine MPI_Reduce_real8_scalar(sendbuf, recvbuf, count, datatype, op, root, comm, ierror)
-        use iso_c_binding, only : c_loc
-        use mpi_c_bindings, only : c_mpi_reduce
+        use iso_c_binding, only : c_loc, c_ptr
+        use mpi_c_bindings, only : c_mpi_reduce, c_mpi_in_place
         real(8), target, intent(in) :: sendbuf
-        real(8), target, intent(out) :: recvbuf
+        real(8), target, intent(inout) :: recvbuf
         integer, intent(in) :: count, datatype, op, root, comm
         integer, optional, intent(out) :: ierror
         integer :: code
+        type(c_ptr) :: sendbuf_ptr
+
         if (count /= 1) call MPI_Abort_proc(comm, 1)
-        code = c_mpi_reduce(c_loc(sendbuf), c_loc(recvbuf), count, handle_mpi_datatype_f2c(datatype), &
+        if (sendbuf == MPI_IN_PLACE) then
+            sendbuf_ptr = c_mpi_in_place
+        else
+            sendbuf_ptr = c_loc(sendbuf)
+        end if
+        code = c_mpi_reduce(sendbuf_ptr, c_loc(recvbuf), count, handle_mpi_datatype_f2c(datatype), &
                            handle_mpi_op_f2c(op), root, handle_mpi_comm_f2c(comm))
         if (present(ierror)) ierror = code
     end subroutine MPI_Reduce_real8_scalar
